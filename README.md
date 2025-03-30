@@ -1,2 +1,2 @@
-# FST
-Laser timing football snapping timer. 
+# Projects Portfolio
+
