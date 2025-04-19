@@ -1,0 +1,43 @@
+
+int redPin= 8;
+int greenPin = 9;
+int  bluePin = 10;
+int button1 = 11;
+int buttonstate1 = 0;
+int button2 = 12;
+int buttonstate2 = 0;
+int button3 = 7;
+int buttonstate3 = 0;
+
+void setup() {
+  //Defining the pins as OUTPUT
+  pinMode(redPin,  OUTPUT);              
+  pinMode(greenPin, OUTPUT);
+  pinMode(bluePin, OUTPUT);
+  pinMode(button1, INPUT);
+  pinMode(button2, INPUT);
+  pinMode(button3, INPUT);
+}
+void  loop() {
+buttonstate1 = digitalRead(button1);
+buttonstate2 = digitalRead(button2);
+buttonstate3 = digitalRead(button3);
+
+
+if(buttonstate1==HIGH){
+setColor(255,0,0);
+}
+if(buttonstate2==HIGH){
+setColor(0,255,0);
+}
+if(buttonstate3==HIGH){
+setColor(0,0,255);
+}
+
+
+}
+void setColor(int redValue, int greenValue,  int blueValue) {
+  analogWrite(redPin, redValue);
+  analogWrite(greenPin,  greenValue);
+  analogWrite(bluePin, blueValue);
+}
