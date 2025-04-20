@@ -1,0 +1,40 @@
+#define laser 2
+#define sensor 3
+int rbutton = 11;
+int rbuttons = 0;
+int redPin= A0;
+int greenPin = A1;
+int  bluePin = A2;
+int value = 0;
+void setup() {
+
+  pinMode(redPin,  OUTPUT);              
+  pinMode(greenPin, OUTPUT);
+  pinMode(bluePin, OUTPUT);
+  pinMode(laser, OUTPUT);
+  pinMode(sensor, INPUT);
+  pinMode(rbutton, INPUT);
+  digitalWrite(laser, HIGH);
+  setColor(0,255,0);
+}
+
+void loop() {
+
+  rbuttons = digitalRead(rbutton);
+  value = digitalRead(sensor);
+//0 means that Laser connection is broken
+  if(rbuttons == HIGH){
+    setColor(255,255,0);
+}
+  
+  if (value == 0) {
+    setColor(255,0,0);
+    digitalWrite(laser,LOW);
+  } 
+}
+
+  void setColor(int redValue, int greenValue,  int blueValue) {
+  analogWrite(redPin, redValue);
+  analogWrite(greenPin,  greenValue);
+  analogWrite(bluePin, blueValue);
+}
