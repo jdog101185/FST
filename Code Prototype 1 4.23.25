@@ -1,0 +1,116 @@
+
+#include <LiquidCrystal.h>
+const int rs = 1, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+
+
+#define stlaser 50
+#define stsensor 52
+#define splaser 51
+#define spsensor 53
+int redPin= A0;
+int greenPin = A1;
+int  bluePin = A2;
+int stvalue = 0;
+int spvalue = 0;
+
+
+int hh=0, mm=0, ss=0, ms=0;
+bool timerStart = false;
+
+int resetbt = 49;
+int resetbts = 0;
+
+void setup() {
+  lcd.begin(16, 2);
+  pinMode(redPin,  OUTPUT);              
+  pinMode(greenPin, OUTPUT);
+  pinMode(bluePin, OUTPUT);
+  pinMode(stlaser, OUTPUT);
+  pinMode(stsensor, INPUT);
+  pinMode(splaser, OUTPUT);
+  pinMode(spsensor, INPUT);
+
+  pinMode(resetbt,INPUT);
+
+  digitalWrite(splaser, HIGH);  
+  digitalWrite(stlaser, HIGH);
+  setColor(0,255,0);
+
+
+
+
+  noInterrupts();        
+  TCCR1A = 0;            
+  TCCR1B = 0;          
+  TCNT1  = 0;          
+  OCR1A = 1999;        
+  TCCR1B |= (1 << WGM12);
+  TCCR1B |= (1 << CS11);
+  TIMSK1 |= (1 << OCIE1A);
+  interrupts();
+}
+
+void loop() {
+
+  resetbts = digitalRead(resetbt);
+  stvalue = digitalRead(stsensor);
+  spvalue = digitalRead(spsensor);
+  //1 means that Laser connection is broken
+  
+  if(resetbts==HIGH){
+
+    reset();
+  }
+  
+  if(stvalue==0){
+  digitalWrite(stlaser,LOW);
+  timerStart=true;
+  setColor(255,255,0);
+  }
+
+  if(spvalue==1 && timerStart==true){
+  timerStart=false;
+  setColor(255,0,0);
+  }
+
+
+
+//columns,rows    y,x      0 is the first of each
+  lcd.setCursor(0,1);
+  lcd.print((ss/10)%10);
+  lcd.print(ss%10);
+  lcd.print(".");
+  lcd.print((ms/100)%10);
+  lcd.print((ms/10)%10);
+  lcd.print(ms%10);
+}
+ISR(TIMER1_COMPA_vect){  
+if(timerStart == true){ms=ms+1;}
+if(ms>999){ms=0;ss=ss+1;}
+if(ss>59){ss=0; mm=mm+1;}
+if(mm>59){mm=0; hh=hh+1;}
+}
+
+
+
+
+
+
+void reset(){
+
+  mm=0;
+  ss=0;
+  ms=0;
+  setColor(0,255,0);
+  digitalWrite(stlaser,HIGH);
+}
+
+
+
+  void setColor(int redValue, int greenValue,  int blueValue) {
+  analogWrite(redPin, redValue);
+  analogWrite(greenPin,  greenValue);
+  analogWrite(bluePin, blueValue);
+}
