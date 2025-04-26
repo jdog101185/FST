@@ -1,0 +1,307 @@
+
+#include <LiquidCrystal.h>
+const int rs = 1, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+
+
+#define stlaser 50
+#define stsensor 52
+#define splaser 51
+#define spsensor 53
+int redPin= A0;
+int greenPin = A1;
+int bluePin = A2;
+int stvalue = 0;
+int spvalue = 0;
+String mode = " ";
+int lcdstate = 0;
+
+int hh=0, mm=0, ss=0, ms=0;
+bool timerStart = false;
+
+int resetbt = 49;
+int resetbts = 0;
+int fstbt = 46;
+int dgbt = 48;
+int mnbt = 47;
+int fstbts = 0;
+int dgbts = 0;
+int mnbts = 0;
+int stbt = 41;
+int spbt = 40;
+int stbts = 0;
+int spbts = 0;
+int rrbt = 43;
+int rrbts = 0;
+int rr = 0;
+String dgst = " ";
+String dgsp = " ";
+int dgstatus = 0;
+int ststatus = 0;
+int spstatus = 0;
+String space = " ";
+int rled = 39;
+int dgled = 37;
+int mnled = 38;
+int fstled = 36;
+
+void setup() {
+  lcd.begin(16, 2);
+  pinMode(redPin,  OUTPUT);              
+  pinMode(greenPin, OUTPUT);
+  pinMode(bluePin, OUTPUT);
+  pinMode(stlaser, OUTPUT);
+  pinMode(stsensor, INPUT);
+  pinMode(splaser, OUTPUT);
+  pinMode(spsensor, INPUT);
+
+  pinMode(resetbt,INPUT);
+  pinMode(fstbt, INPUT);
+  pinMode(dgbt, INPUT);
+  pinMode(mnbt, INPUT);
+  pinMode(stbt, INPUT);
+  pinMode(spbt, INPUT);
+  pinMode(rrbt, INPUT);
+
+  pinMode(rled, OUTPUT);
+  pinMode(dgled, OUTPUT);
+  pinMode(mnled, OUTPUT);
+  pinMode(fstled, OUTPUT);
+
+  digitalWrite(splaser, LOW);  
+  digitalWrite(stlaser, LOW);
+
+  digitalWrite(fstled, LOW);
+  digitalWrite(mnled, LOW);
+  digitalWrite(dgled, LOW);
+
+
+
+  noInterrupts();        
+  TCCR1A = 0;            
+  TCCR1B = 0;          
+  TCNT1  = 0;          
+  OCR1A = 1999;        
+  TCCR1B |= (1 << WGM12);
+  TCCR1B |= (1 << CS11);
+  TIMSK1 |= (1 << OCIE1A);
+  interrupts();
+}
+
+void loop() {
+  
+  //Welcome screen********************************************************
+  if(lcdstate == 0){
+  lcd.setCursor(0,0);
+  lcd.print("FST");
+  lcd.setCursor(0,1);
+  lcd.print("Select Mode");
+  }
+
+//Diagnostics Mode*******************************************************
+  if(lcdstate == 1){
+  stvalue = digitalRead(stsensor);
+  spvalue = digitalRead(spsensor);
+  lcd.setCursor(0,0);
+  lcd.print("Mode:");
+  lcd.print(mode);
+  lcd.setCursor(0,1);
+  lcd.print("STR:");
+  lcd.print(dgst);
+  lcd.print(space);
+  lcd.print("STP:");
+  lcd.print(dgsp);
+dgstatus = ststatus + spstatus;
+
+  if(stvalue == 0){
+    dgst = "R";
+    ststatus = 0;
+    space = "  ";
+  }
+  if(stvalue == 1){
+    dgst = "NR";
+    ststatus = 1;
+    space = " ";
+  }
+  
+  if(spvalue == 0){
+    dgsp = "R       ";
+    spstatus = 0;
+  }
+  if(spvalue == 1){
+    dgsp = "NR        ";
+    spstatus = 1;
+  }
+  
+
+
+  if(dgstatus == 0){
+    setColor(0,255,0);
+  }
+  if(dgstatus == 1){
+    setColor(255,255,0);
+  }
+  if(dgstatus == 2){
+    setColor(255,0,0);
+  }
+  }
+  //Manual Mode***********************************************************
+  if(lcdstate == 2){
+
+  stbts = digitalRead(stbt);
+  spbts = digitalRead(spbt);
+
+if(stbts == HIGH){
+  timerStart = true;
+  setColor(255,255,0);
+}
+if(spbts == HIGH){
+  timerStart = false;
+  setColor(255,0,0);
+}
+if(resetbts == HIGH){
+ timerStart = false;
+  mm=0;
+  ss=0;
+  ms=0;
+  setColor(0,255,0);
+}
+  lcd.setCursor(0,0);
+  lcd.print("Mode:");
+  lcd.print(mode);
+  lcd.setCursor(0,1);
+  lcd.print((ss/10)%10);
+  lcd.print(ss%10);
+  lcd.print(".");
+  lcd.print((ms/100)%10);
+  lcd.print((ms/10)%10);
+  lcd.print(ms%10);
+
+
+  }
+//FST Mode**********************************************************
+  if(lcdstate == 3){
+  rrbts = digitalRead(rrbt);
+  stvalue = digitalRead(stsensor);
+  spvalue = digitalRead(spsensor);
+  //1 means that Laser connection is broken
+  
+  if(resetbts==HIGH){
+  timerStart = false;
+  rr=0;
+  mm=0;
+  ss=0;
+  ms=0;
+  setColor(255,0,0);
+  digitalWrite(stlaser,HIGH);
+  }
+  
+  if(stvalue==0 && rr==1){
+  digitalWrite(stlaser,LOW);
+  timerStart=true;
+  setColor(255,255,0);
+  digitalWrite(rled, LOW);
+  }
+
+  if(spvalue==1 && timerStart==true){
+  timerStart=false;
+  setColor(255,0,0);
+  }
+
+  if(rrbts == HIGH && rr == 0){
+    rr=1;
+    setColor(0,255,0);
+    digitalWrite(rled, HIGH);
+  }
+
+//columns,rows    y,x      0 is the first of each
+  lcd.setCursor(0,0);
+  lcd.print("Mode:");
+  lcd.print(mode);
+  lcd.setCursor(0,1);
+  lcd.print((ss/10)%10);
+  lcd.print(ss%10);
+  lcd.print(".");
+  lcd.print((ms/100)%10);
+  lcd.print((ms/10)%10);
+  lcd.print(ms%10);
+
+  }
+  //Mode Switcher************************************************************
+  fstbts = digitalRead(fstbt);
+  mnbts = digitalRead(mnbt);
+  dgbts = digitalRead(dgbt);
+  if(fstbts == HIGH){
+  lcdstate = 3;
+  digitalWrite(fstled, HIGH);
+  digitalWrite(mnled, LOW);
+  digitalWrite(dgled, LOW);
+  rr = 0;
+  timerStart = false;  
+  lcd.clear();
+  mode = "FST";
+  mm=0;
+  ss=0;
+  ms=0;
+  digitalWrite(splaser, HIGH);  
+  digitalWrite(stlaser, HIGH);
+  setColor(255,0,0);
+  digitalWrite(rled, LOW);
+  }
+  if(mnbts == HIGH){
+  lcdstate = 2;
+  timerStart = false;
+  digitalWrite(fstled, LOW);
+  digitalWrite(mnled, HIGH);
+  digitalWrite(dgled, LOW);
+  lcd.clear();
+  setColor(0,255,0);
+  mode = "MANUAL";
+  mm=0;
+  ss=0;
+  ms=0;
+  digitalWrite(splaser, LOW);  
+  digitalWrite(stlaser, LOW);
+  digitalWrite(rled, LOW);
+  }
+  if(dgbts == HIGH){
+  lcdstate = 1;
+  digitalWrite(fstled, LOW);
+  digitalWrite(mnled, LOW);
+  digitalWrite(dgled, HIGH);
+  lcd.clear();
+  timerStart = false; 
+  mm=0;
+  ss=0;
+  ms=0;
+  mode = "DIAGNOSTICS";
+  digitalWrite(splaser, HIGH);  
+  digitalWrite(stlaser, HIGH);
+  digitalWrite(rled, LOW);
+  }
+  resetbts = digitalRead(resetbt);
+
+
+
+
+}
+
+
+ISR(TIMER1_COMPA_vect){  
+if(timerStart == true){ms=ms+1;}
+if(ms>999){ms=0;ss=ss+1;}
+if(ss>59){ss=0; mm=mm+1;}
+if(mm>59){mm=0; hh=hh+1;}
+}
+
+
+
+
+
+
+  void setColor(int redValue, int greenValue,  int blueValue) {
+  analogWrite(redPin, redValue);
+  analogWrite(greenPin,  greenValue);
+  analogWrite(bluePin, blueValue);
+}
