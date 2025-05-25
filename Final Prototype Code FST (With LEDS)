@@ -41,7 +41,7 @@ int dgstatus = 0;
 int ststatus = 0;
 int spstatus = 0;
 String space = " ";
-int rled = 39;
+
 int dgled = 37;
 int mnled = 38;
 int fstled = 36;
@@ -64,7 +64,7 @@ void setup() {
   pinMode(spbt, INPUT);
   pinMode(rrbt, INPUT);
 
-  pinMode(rled, OUTPUT);
+  
   pinMode(dgled, OUTPUT);
   pinMode(mnled, OUTPUT);
   pinMode(fstled, OUTPUT);
@@ -201,7 +201,7 @@ if(resetbts == HIGH){
   digitalWrite(stlaser,LOW);
   timerStart=true;
   setColor(255,255,0);
-  digitalWrite(rled, LOW);
+  
   }
 
   if(spvalue==1 && timerStart==true){
@@ -212,7 +212,7 @@ if(resetbts == HIGH){
   if(rrbts == HIGH && rr == 0){
     rr=1;
     setColor(0,255,0);
-    digitalWrite(rled, HIGH);
+    
   }
 
 //columns,rows    y,x      0 is the first of each
